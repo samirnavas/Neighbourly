@@ -2,7 +2,7 @@ import { MobileMap } from "@/components/MobileMap";
 
 export default function ExploreSpacesPage() {
     return (
-        <div className="relative w-full h-[100dvh]">
+        <div className="relative w-full h-full">
             <MobileMap listingType="space" />
         </div>
     );

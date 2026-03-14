@@ -97,7 +97,7 @@ export default function MapInner({ listingType }: { listingType: "space" | "tool
     const initialCenter = userLocation || defaultCenter;
 
     return (
-        <div className="relative w-full h-[100dvh]">
+        <div className="relative w-full h-full">
             {/* Search Bar Overflow */}
             <div className="absolute top-4 left-4 right-4 z-[400]">
                 <div className="bg-white rounded-full shadow-lg border border-gray-100 px-4 py-3 flex items-center">
@@ -162,15 +162,14 @@ export default function MapInner({ listingType }: { listingType: "space" | "tool
 
             {/* Bottom Sheet */}
             <div
-                className={`absolute bottom-0 left-0 right-0 z-[500] bg-white rounded-t-3xl shadow-[0_-4px_25px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-in-out ${
-                    selectedListing ? "translate-y-0" : "translate-y-full"
-                }`}
+                className={`absolute bottom-0 left-0 right-0 z-[500] bg-white rounded-t-3xl shadow-[0_-4px_25px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-in-out ${selectedListing ? "translate-y-0" : "translate-y-full"
+                    }`}
             >
                 {selectedListing && (
                     <div className="p-5 pb-[calc(5rem+env(safe-area-inset-bottom))] relative">
                         {/* Close button pill / drag handle simulated */}
                         <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4" />
-                        
+
                         <button
                             onClick={() => setSelectedListing(null)}
                             className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full active:scale-95"
@@ -191,7 +190,7 @@ export default function MapInner({ listingType }: { listingType: "space" | "tool
                                 <h3 className="font-semibold text-gray-900 text-lg leading-tight truncate">
                                     {selectedListing.title}
                                 </h3>
-                                
+
                                 {selectedListing.evCharging && (
                                     <div className="inline-flex items-center mt-1.5 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-xs font-medium border border-blue-100">
                                         <Zap className="w-3 h-3 mr-1" fill="currentColor" />
