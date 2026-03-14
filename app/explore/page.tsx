@@ -1,4 +1,4 @@
-import dynamic from "next/dynamic";
+import MapWrapper from "@/components/MapWrapper";
 import type { Listing } from "@/types";
 
 // Dummy listings data for map display (as specified in the requirements)
@@ -89,19 +89,6 @@ const DUMMY_LISTINGS: Listing[] = [
   },
 ];
 
-// Dynamically import the Map component — must be client-side only (no SSR)
-const MapComponent = dynamic(() => import("@/components/Map"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <div className="text-4xl mb-3 animate-pulse">🗺️</div>
-        <p className="text-gray-500 text-sm">Loading map…</p>
-      </div>
-    </div>
-  ),
-});
-
 export default function ExplorePage() {
   return (
     <div className="flex flex-col" style={{ height: "calc(100vh - 64px)" }}>
@@ -128,7 +115,7 @@ export default function ExplorePage() {
 
       {/* Full-screen Map */}
       <div className="flex-1 relative">
-        <MapComponent listings={DUMMY_LISTINGS} />
+        <MapWrapper listings={DUMMY_LISTINGS} />
       </div>
     </div>
   );

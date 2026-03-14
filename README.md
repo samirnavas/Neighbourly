@@ -4,7 +4,7 @@ A hyper-local asset-sharing marketplace where neighbours can rent out empty driv
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 15 (App Router)
 - **Styling**: Tailwind CSS + custom Shadcn-style UI components
 - **Backend/Database/Auth**: Supabase
 - **Map**: react-leaflet + leaflet (OpenStreetMap tiles)
