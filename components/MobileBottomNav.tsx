@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Compass, Calendar, User } from "lucide-react";
+import { Home, Calendar, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,7 +9,6 @@ export function MobileBottomNav() {
 
     const navItems = [
         { label: "Home", icon: Home, href: "/" },
-        { label: "Explore", icon: Compass, href: "/explore" },
         { label: "Bookings", icon: Calendar, href: "/bookings" },
         { label: "Profile", icon: User, href: "/profile" },
     ];
@@ -18,7 +17,7 @@ export function MobileBottomNav() {
         <nav className="fixed bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-200 pb-safe z-50">
             <div className="flex justify-around items-center h-16 px-4">
                 {navItems.map((item) => {
-                    const isActive = pathname === item.href || (item.href.startsWith("/explore") && pathname.startsWith("/explore"));
+                    const isActive = pathname === item.href;
                     const Icon = item.icon;
 
                     return (

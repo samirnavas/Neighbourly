@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { LocationProvider } from "@/components/LocationContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -29,10 +30,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-gray-900 bg-gray-50 overflow-x-hidden min-h-[100dvh] relative`}
       >
-        <main className="h-[100dvh] pb-20 overflow-y-auto scrollbar-hide">
-          {children}
-        </main>
-        <MobileBottomNav />
+        <LocationProvider>
+          <main className="h-[100dvh] pb-20 overflow-y-auto scrollbar-hide">
+            {children}
+          </main>
+          <MobileBottomNav />
+        </LocationProvider>
       </body>
     </html>
   );

@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { preBookListing } from "@/app/actions/bookings";
 import { getDistance } from "@/lib/utils";
 import RadiusFilterSheet from "./RadiusFilterSheet";
+import { useLocation } from "@/components/LocationContext";
 
 // Fix for default Leaflet icon paths in next.js
 const DefaultIcon = L.icon({
@@ -82,7 +83,7 @@ export default function MapInner({
     listingType: "space" | "tool";
     initialListings: MapListing[];
 }) {
-    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+    const { latitude, longitude } = useLocation();
     const [selectedListing, setSelectedListing] = useState<MapListing | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedToolCategory, setSelectedToolCategory] = useState("All");
@@ -95,26 +96,13 @@ export default function MapInner({
 
     const toolCategories = ["All", "Power Tools", "Gardening", "Cleaning", "Automotive"];
 
+    const userLocation: [number, number] | null = latitude && longitude ? [latitude, longitude] : null;
+
     const handleRecenter = () => {
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
-                    setUserLocation(loc);
-                },
-                (error) => {
-                    console.error("Error obtaining location", error);
-                    setUserLocation([51.505, -0.09]);
-                }
-            );
-        } else {
-            setUserLocation([51.505, -0.09]);
+        if (userLocation && mapRef.current) {
+            mapRef.current.flyTo(userLocation, 14, { animate: true });
         }
     };
-
-    useEffect(() => {
-        handleRecenter();
-    }, []);
 
     function MapEvents() {
         useMapEvents({
@@ -240,9 +228,6 @@ export default function MapInner({
                     {filteredListings.map((listing) => {
                         const lat = listing.latitude || 0;
                         const lng = listing.longitude || 0;
-                        // Provide a valid coordinate fallback so pins render if missing coords temporarily
-                        // The user's mock values or default fallback coordinates in add listing are 0,0 which is the Atlantic Ocean.
-                        // For UI purposes, if 0,0 we shift it slightly from the default center. In prod, real API provides real lat/lng.
                         const finalLat = lat === 0 ? defaultCenter[0] + (Math.random() - 0.5) * 0.05 : lat;
                         const finalLng = lng === 0 ? defaultCenter[1] + (Math.random() - 0.5) * 0.05 : lng;
 
