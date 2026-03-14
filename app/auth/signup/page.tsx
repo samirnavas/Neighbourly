@@ -71,7 +71,7 @@ export default function SignupPage() {
     setLoading(false);
 
     // Try to navigate to home — will work if email confirmation is disabled
-    setTimeout(() => router.push("/home"), 1500);
+    setTimeout(() => router.push("/"), 1500);
   };
 
   return (
