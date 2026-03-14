@@ -1,136 +1,63 @@
+﻿import { Bell, Car, Wrench } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
-export default function HomePage() {
+const categories = [
+  { icon: Car, label: "Parking", href: "/explore?category=parking" },
+  { icon: Wrench, label: "Tools", href: "/explore?category=tools" },
+];
+
+export default function Home() {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-emerald-50 to-teal-100 py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="text-6xl mb-6">🏘️</div>
-          <h1 className="text-5xl font-extrabold text-gray-900 mb-4">
-            Share More with Your{" "}
-            <span className="text-emerald-600">Neighbours</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Rent your empty driveway for extra income, or borrow heavy-duty
-            tools from people on your street. Hyper-local. Community-first.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/explore">
-              <Button size="lg" className="text-base px-8">
-                🗺️ Explore the Map
-              </Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button size="lg" variant="outline" className="text-base px-8">
-                Get Started Free
-              </Button>
-            </Link>
+    <div className="flex flex-col min-h-full bg-gray-50">
+      <header className="px-6 pt-12 pb-4 bg-white sticky top-0 z-10 border-b border-gray-100/50 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Good morning, Samir</h1>
+        </div>
+        <div className="relative">
+          <div className="p-2 bg-gray-100 rounded-full">
+            <Bell className="w-5 h-5 text-gray-600" />
           </div>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-700 rounded-full border-2 border-white"></span>
         </div>
+      </header>
+
+      <section className="mt-4 px-6 pb-2">
+        {categories.map((cat, idx) => (
+          <Link
+            key={idx}
+            href={cat.href}
+            className="w-full h-24 rounded-3xl bg-white shadow-md border border-gray-200 flex items-center gap-4 px-5 mb-3 active:scale-[0.98] transition-transform"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-emerald-800/10 flex items-center justify-center">
+              <cat.icon className="w-7 h-7 text-emerald-800" />
+            </div>
+            <span className="text-base font-semibold text-gray-900 tracking-tight">{cat.label}</span>
+          </Link>
+        ))}
       </section>
 
-      {/* How It Works */}
-      <section className="py-16 px-4 max-w-5xl mx-auto">
-        <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-          How It Works
-        </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              emoji: "📍",
-              title: "Browse the Map",
-              description:
-                "Explore an interactive map of available parking spaces and tools in your neighbourhood.",
-            },
-            {
-              emoji: "📅",
-              title: "Book Instantly",
-              description:
-                "Select your dates and book directly. No middleman, no hassle.",
-            },
-            {
-              emoji: "💰",
-              title: "Earn or Save",
-              description:
-                "List your own driveway or tools to earn extra income, or rent from a neighbour to save.",
-            },
-          ].map((step) => (
-            <div
-              key={step.title}
-              className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center"
-            >
-              <div className="text-4xl mb-4">{step.emoji}</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {step.title}
-              </h3>
-              <p className="text-gray-500 text-sm">{step.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <div className="px-6 mt-6 mb-2">
+        <h2 className="text-lg font-bold text-gray-900 tracking-tight">Near You</h2>
+      </div>
 
-      {/* Categories */}
-      <section className="py-16 px-4 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            What You Can Share
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="rounded-2xl p-8 bg-emerald-50 border border-emerald-100">
-              <div className="text-4xl mb-4">🅿️</div>
-              <h3 className="text-2xl font-bold text-emerald-800 mb-3">
-                Parking Spaces
-              </h3>
-              <p className="text-emerald-700 mb-4">
-                Have an empty driveway or garage? List it and earn money from
-                neighbours who need reliable, affordable parking.
-              </p>
-              <ul className="text-sm text-emerald-600 space-y-1">
-                <li>✓ Driveways</li>
-                <li>✓ Garages</li>
-                <li>✓ Private car parks</li>
-              </ul>
+      <div className="px-6 space-y-6 flex-1 pb-10">
+        {[1, 2, 3].map((item) => (
+          <div key={item} className="flex flex-col gap-3">
+            <div className="relative w-full aspect-[4/3] bg-gray-200 rounded-3xl overflow-hidden">
+              <div className="absolute inset-0 bg-gray-300" />
+              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full shadow-sm">
+                <span className="text-sm font-bold text-gray-900">$15/d</span>
+              </div>
             </div>
-            <div className="rounded-2xl p-8 bg-blue-50 border border-blue-100">
-              <div className="text-4xl mb-4">🔧</div>
-              <h3 className="text-2xl font-bold text-blue-800 mb-3">
-                Tools &amp; Equipment
-              </h3>
-              <p className="text-blue-700 mb-4">
-                Don&apos;t buy when you can borrow. Rent power tools, gardening
-                equipment and more from people nearby.
-              </p>
-              <ul className="text-sm text-blue-600 space-y-1">
-                <li>✓ Power tools</li>
-                <li>✓ Garden equipment</li>
-                <li>✓ Construction gear</li>
-              </ul>
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-semibold text-gray-900 leading-tight">Private Driveway</h3>
+                <p className="text-sm text-gray-500 mt-0.5">0.2 mi away</p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 px-4 bg-emerald-700 text-white text-center">
-        <h2 className="text-3xl font-bold mb-4">
-          Ready to connect with your community?
-        </h2>
-        <p className="text-emerald-100 mb-8 text-lg">
-          Join Neighbourly today — it&apos;s free to sign up.
-        </p>
-        <Link href="/auth/signup">
-          <Button size="lg" variant="outline" className="text-emerald-700 hover:bg-white border-white bg-white text-base px-8">
-            Create Your Free Account
-          </Button>
-        </Link>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-8 px-4 text-center text-sm text-gray-400 bg-gray-50 border-t border-gray-200">
-        <p>© {new Date().getFullYear()} Neighbourly. Built with ❤️ for communities.</p>
-      </footer>
+        ))}
+      </div>
     </div>
   );
 }

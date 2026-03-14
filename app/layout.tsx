@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -15,9 +15,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Neighbourly – Hyper-Local Asset Sharing",
-  description:
-    "Rent driveways and tools from your neighbours. Find parking spaces and heavy-duty equipment close to home.",
+  title: "Neighbourly",
+  description: "Rent driveways and tools from your neighbours, locally.",
 };
 
 export default function RootLayout({
@@ -28,10 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-gray-900 bg-gray-50 overflow-x-hidden min-h-[100dvh] relative`}
       >
-        <Navbar />
-        <main>{children}</main>
+        <main className="h-full min-h-[100dvh] pb-24">
+          {children}
+        </main>
+        <MobileBottomNav />
       </body>
     </html>
   );
