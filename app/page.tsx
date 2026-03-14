@@ -24,7 +24,7 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
 };
 
 export default function Home() {
-  const { latitude, longitude, isLoading: isLocationLoading } = useLocation();
+  const { latitude, longitude, error: locationError, isLoading: isLocationLoading, requestLocation } = useLocation();
   const [userName, setUserName] = useState("Neighbour");
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [listings, setListings] = useState<Record<string, unknown>[]>([]);
@@ -137,6 +137,20 @@ export default function Home() {
                   </div>
                 </div>
               ))
+            ) : locationError ? (
+              <div className="px-6 py-10 text-center bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200 min-w-[320px] mx-auto w-full">
+                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="w-8 h-8" />
+                </div>
+                <p className="text-gray-900 font-bold mb-2">Location Required</p>
+                <p className="text-gray-500 text-sm font-medium mb-6 px-4">{locationError}</p>
+                <button 
+                  onClick={() => requestLocation()}
+                  className="bg-gray-900 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-xl active:scale-95 transition-transform"
+                >
+                  Enable Location
+                </button>
+              </div>
             ) : filteredItems.length > 0 ? (
               filteredItems.map((item) => (
                 <div key={item.id} className="min-w-[280px] bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-sm active:scale-[0.98] transition-transform">
@@ -171,7 +185,7 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              <div className="px-6 py-8 text-center bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200 min-w-[300px]">
+              <div className="px-6 py-8 text-center bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200 min-w-[300px] w-full">
                 <p className="text-gray-500 font-medium">No items found within 10km.</p>
               </div>
             )}

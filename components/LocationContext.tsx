@@ -2,24 +2,28 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-interface LocationState {
+interface LocationData {
   latitude: number | null;
   longitude: number | null;
   error: string | null;
   isLoading: boolean;
 }
 
-const LocationContext = createContext<LocationState | undefined>(undefined);
+interface LocationContextType extends LocationData {
+  requestLocation: () => void;
+}
+
+const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 export function LocationProvider({ children }: { children: React.ReactNode }) {
-  const [location, setLocation] = useState<LocationState>({
+  const [location, setLocation] = useState<LocationData>({
     latitude: null,
     longitude: null,
     error: null,
     isLoading: true,
   });
 
-  useEffect(() => {
+  const requestLocation = () => {
     if (!navigator.geolocation) {
       setLocation((prev) => ({
         ...prev,
@@ -28,6 +32,17 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       }));
       return;
     }
+
+    if (typeof window !== "undefined" && !window.isSecureContext && window.location.hostname !== "localhost") {
+      setLocation((prev) => ({
+        ...prev,
+        error: "Location requires a secure connection (HTTPS) when accessed over a local network.",
+        isLoading: false,
+      }));
+      return;
+    }
+
+    setLocation(prev => ({ ...prev, isLoading: true, error: null }));
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -39,22 +54,31 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         });
       },
       (error) => {
+        let errorMsg = "Unable to retrieve your location";
+        if (error.code === 1) errorMsg = "Location permission denied";
+        else if (error.code === 2) errorMsg = "Location position unavailable";
+        else if (error.code === 3) errorMsg = "Location request timed out";
+
         setLocation((prev) => ({
           ...prev,
-          error: error.message,
+          error: errorMsg,
           isLoading: false,
         }));
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000, // Increased timeout to 10s as mobile GPS can be slow
+        timeout: 10000,
         maximumAge: 0,
       }
     );
+  };
+
+  useEffect(() => {
+    requestLocation();
   }, []);
 
   return (
-    <LocationContext.Provider value={location}>
+    <LocationContext.Provider value={{ ...location, requestLocation }}>
       {children}
     </LocationContext.Provider>
   );
