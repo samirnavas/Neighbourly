@@ -51,7 +51,7 @@ function MapController({
     const map = useMap();
     useEffect(() => {
         if (center) {
-            map.flyTo(center, 14, { animate: true });
+            map.setView(center, 13);
         }
     }, [center, map]);
     return null;
