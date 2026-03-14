@@ -165,7 +165,7 @@ export default function BookingChatModal({ bookingId, currentUserId, status, isO
         <div className="p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           {isClosed ? (
             <div className="text-center p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium">
-              Chat closed. Please proceed to payment.
+              Chat closed. Booking has ended.
             </div>
           ) : (
             <form onSubmit={handleSend} className="flex space-x-2">

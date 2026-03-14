@@ -129,7 +129,7 @@ export async function processQRHandshake(bookingId: string, scannedQrId: string,
     return { error: "Unauthorized: Only the renter can check in." };
   }
 
-  const listing: any = booking.listings;
+  const listing: Record<string, unknown> = (booking.listings || {}) as Record<string, unknown>;
 
   if (listing.qr_code_id !== scannedQrId) {
     return { error: "Invalid QR code scanned." };
@@ -162,8 +162,8 @@ export async function processQRHandshake(bookingId: string, scannedQrId: string,
     const durationHours = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
     
     // Calculate price
-    const baseRate = parseFloat(listing.price_per_hour || 0);
-    const evRate = evUsed ? parseFloat(listing.ev_price_per_hour || 0) : 0;
+    const baseRate = parseFloat(String(listing.price_per_hour || 0));
+    const evRate = evUsed ? parseFloat(String(listing.ev_price_per_hour || 0)) : 0;
     const hourlyRate = baseRate + evRate;
     
     // Fallback if price_per_hour is missing (e.g. standard booking without hourly setup)
@@ -230,4 +230,47 @@ export async function completePayment(bookingId: string) {
 
   if (error) return { error: error.message };
   return { error: null };
+}
+
+export async function preBookListing(listingId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Not authenticated" };
+
+  // Calculate generic start/end for placeholder pre-booking if necessary,
+  // or use the current time if we just need a pending state row
+  const start = new Date();
+  const end = new Date();
+  end.setHours(start.getHours() + 1);
+
+  const { data: listing, error: listingError } = await supabase
+    .from("listings")
+    .select("price_per_hour, owner_id")
+    .eq("id", listingId)
+    .single();
+
+  if (listingError || !listing) return { error: "Listing not found" };
+
+  if (listing.owner_id === user.id) {
+    return { error: "You cannot pre-book your own listing" };
+  }
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .insert({
+      listing_id: listingId,
+      renter_id: user.id,
+      start_date: start.toISOString(),
+      end_date: end.toISOString(),
+      total_price: listing.price_per_hour || 0,
+      status: "pending",
+      is_prebooked: true,
+    })
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+
+  return { data, error: null };
 }

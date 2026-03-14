@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { completePayment } from "@/app/actions/bookings";
 
 interface PaymentSheetProps {
-  booking: any; // We use 'any' for prototype to easily accept joined listing data
+  booking: Record<string, unknown> | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -17,17 +17,17 @@ export default function PaymentSheet({ booking, isOpen, onClose }: PaymentSheetP
   if (!isOpen || !booking) return null;
 
   // Derive duration manually for the breakdown
-  const start = new Date(booking.actual_start_time);
-  const end = new Date(booking.actual_end_time);
+  const start = new Date(String(booking.actual_start_time));
+  const end = new Date(String(booking.actual_end_time));
   const diffMs = end.getTime() - start.getTime();
   const rawHours = diffMs / (1000 * 60 * 60);
   const durationHours = Math.max(1, Math.ceil(rawHours));
 
   // Destructure joined listing safely
-  const listing = booking.listings || {};
-  const hourlyRate = parseFloat(listing.price_per_hour || 0);
-  const evRate = parseFloat(listing.ev_price_per_hour || 0);
-  const totalPrice = parseFloat(booking.total_price || 0);
+  const listing = (booking.listings as Record<string, unknown>) || {};
+  const hourlyRate = parseFloat(String(listing.price_per_hour || 0));
+  const evRate = parseFloat(String(listing.ev_price_per_hour || 0));
+  const totalPrice = parseFloat(String(booking.total_price || 0));
 
   // If EV charging was used, we assume total = duration * (hourlyRate + evRate).
   // Thus we can infer if EV was used by seeing if duration * hourlyRate < total
@@ -36,7 +36,7 @@ export default function PaymentSheet({ booking, isOpen, onClose }: PaymentSheetP
   const handlePayment = async () => {
     setLoading(true);
     try {
-      const result = await completePayment(booking.id);
+      const result = await completePayment(String(booking.id));
       if (result.error) {
         alert("Payment failed: " + result.error);
         setLoading(false);
@@ -47,7 +47,7 @@ export default function PaymentSheet({ booking, isOpen, onClose }: PaymentSheetP
         router.push(`/dashboard/reviews/new?bookingId=${booking.id}`);
         onClose();
       }
-    } catch (error) {
+    } catch {
       alert("Error processing payment.");
       setLoading(false);
     }

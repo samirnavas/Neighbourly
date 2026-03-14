@@ -35,8 +35,12 @@ export default function ScannerModal({ bookingId, isOpen, onClose, onSuccess }: 
           onClose();
         }, 1500);
       }
-    } catch (err: any) {
-      setError(err.message || "An error occurred during scan");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An error occurred during scan");
+      }
     } finally {
       setLoading(false);
     }

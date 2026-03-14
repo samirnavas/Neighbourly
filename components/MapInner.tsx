@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { LocateFixed, Search, Star, Zap, X } from "lucide-react";
-import { mockListings } from "@/lib/mockData";
+import { LocateFixed, Search, Star, Zap } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { preBookListing } from "@/app/actions/bookings";
 
 // Fix for default Leaflet icon paths in next.js
 const DefaultIcon = L.icon({
@@ -53,13 +54,42 @@ function MapController({
     return null;
 }
 
-export default function MapInner({ listingType }: { listingType: "space" | "tool" }) {
-    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-    const [selectedListing, setSelectedListing] = useState<any | null>(null);
-    const mapRef = useRef<any>(null);
+export type MapListing = {
+    id: string;
+    title: string;
+    description: string | null;
+    category: "space" | "tool";
+    price_per_hour: number | null;
+    ev_charging_available: boolean;
+    ev_price_per_hour: number | null;
+    latitude: number;
+    longitude: number;
+    image_url: string | null;
+    address_text: string | null;
+    owner: {
+        full_name: string | null;
+        avatar_url: string | null;
+        trust_score: number | null;
+    };
+};
 
-    // Filter listings based on what we're exploring
-    const filteredListings = mockListings.filter((l) => l.type === listingType);
+export default function MapInner({ 
+    listingType, 
+    initialListings 
+}: { 
+    listingType: "space" | "tool";
+    initialListings: MapListing[];
+}) {
+    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+    const [selectedListing, setSelectedListing] = useState<MapListing | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedToolCategory, setSelectedToolCategory] = useState("All");
+    const [isPending, startTransition] = useTransition();
+    const router = useRouter();
+    
+    const mapRef = useRef<L.Map | null>(null);
+
+    const toolCategories = ["All", "Power Tools", "Gardening", "Cleaning", "Automotive"];
 
     const handleRecenter = () => {
         if ("geolocation" in navigator) {
@@ -67,11 +97,9 @@ export default function MapInner({ listingType }: { listingType: "space" | "tool
                 (position) => {
                     const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
                     setUserLocation(loc);
-                    // MapController handles the map re-center via map.flyTo
                 },
                 (error) => {
                     console.error("Error obtaining location", error);
-                    // Provide a stable fallback (e.g. London) if user denies geolocation
                     setUserLocation([51.505, -0.09]);
                 }
             );
@@ -80,12 +108,10 @@ export default function MapInner({ listingType }: { listingType: "space" | "tool
         }
     };
 
-    // On mount, get user's location
     useEffect(() => {
         handleRecenter();
     }, []);
 
-    // Map click handler component
     function MapEvents() {
         useMapEvents({
             click: () => setSelectedListing(null),
@@ -96,18 +122,68 @@ export default function MapInner({ listingType }: { listingType: "space" | "tool
     const defaultCenter: [number, number] = [51.505, -0.09];
     const initialCenter = userLocation || defaultCenter;
 
+    // Filter listings
+    const filteredListings = initialListings.filter((l) => {
+        const matchesSearch = searchTerm === "" ||
+            l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (l.address_text && l.address_text.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        let matchesCat = true;
+        if (listingType === "tool" && selectedToolCategory !== "All") {
+            const term = selectedToolCategory.toLowerCase();
+            matchesCat = l.title.toLowerCase().includes(term) ||
+                (l.description && l.description.toLowerCase().includes(term));
+        }
+
+        return matchesSearch && matchesCat;
+    });
+
+    const handlePreBook = () => {
+        if (!selectedListing) return;
+        startTransition(async () => {
+            const { error } = await preBookListing(selectedListing.id);
+            if (error) {
+                alert(error); // In production, use standard toast notification
+            } else {
+                router.push("/bookings");
+            }
+        });
+    };
+
     return (
         <div className="relative w-full h-full">
-            {/* Search Bar Overflow */}
-            <div className="absolute top-4 left-4 right-4 z-[400]">
-                <div className="bg-white rounded-full shadow-lg border border-gray-100 px-4 py-3 flex items-center">
-                    <Search className="w-5 h-5 text-gray-400 mr-2" />
+            {/* Search Bar & Toggles Overlay */}
+            <div className="absolute top-4 left-4 right-4 z-[400] space-y-3 pointer-events-none">
+                {/* Search Bar */}
+                <div className="bg-white/95 backdrop-blur-md rounded-full shadow-lg border border-gray-100 px-4 py-3 flex items-center pointer-events-auto">
+                    <Search className="w-5 h-5 text-gray-400 mr-2 shrink-0" />
                     <input
                         type="text"
-                        placeholder={`Search for a ${listingType}...`}
-                        className="bg-transparent border-none outline-none w-full text-sm placeholder:text-gray-400"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder={`Search for ${listingType === "space" ? "a parking space" : "tools"} (title or address)...`}
+                        className="bg-transparent border-none outline-none w-full text-sm placeholder:text-gray-400 text-gray-900 font-medium"
                     />
                 </div>
+
+                {/* Horizontal Tool Categories Toggle Bar */}
+                {listingType === "tool" && (
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 pointer-events-auto px-1">
+                        {toolCategories.map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setSelectedToolCategory(cat)}
+                                className={`px-4 py-2 shrink-0 rounded-full text-sm font-semibold transition-colors shadow-sm ${
+                                    selectedToolCategory === cat
+                                        ? "bg-gray-900 text-white"
+                                        : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                                }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Recenter FAB */}
@@ -118,11 +194,11 @@ export default function MapInner({ listingType }: { listingType: "space" | "tool
                 <LocateFixed className="w-6 h-6" />
             </button>
 
-            {/* The Map itself */}
+            {/* The Map */}
             <MapContainer
                 center={initialCenter}
                 zoom={14}
-                zoomControl={false} // hide default zoom controls for mobile feel
+                zoomControl={false}
                 style={{ width: "100%", height: "100%" }}
                 ref={mapRef}
             >
@@ -133,20 +209,29 @@ export default function MapInner({ listingType }: { listingType: "space" | "tool
                 <MapController center={userLocation} />
                 <MapEvents />
 
-                {filteredListings.map((listing) => (
-                    <Marker
-                        key={listing.id}
-                        position={[listing.lat, listing.lng]}
-                        icon={getIcon(listing.type, listing.evCharging)}
-                        eventHandlers={{
-                            click: () => {
-                                setSelectedListing(listing);
-                            },
-                        }}
-                    />
-                ))}
+                {filteredListings.map((listing) => {
+                    const lat = listing.latitude || 0;
+                    const lng = listing.longitude || 0;
+                    // Provide a valid coordinate fallback so pins render if missing coords temporarily
+                    // The user's mock values or default fallback coordinates in add listing are 0,0 which is the Atlantic Ocean.
+                    // For UI purposes, if 0,0 we shift it slightly from the default center. In prod, real API provides real lat/lng.
+                    const finalLat = lat === 0 ? defaultCenter[0] + (Math.random() - 0.5) * 0.05 : lat;
+                    const finalLng = lng === 0 ? defaultCenter[1] + (Math.random() - 0.5) * 0.05 : lng;
 
-                {/* Optional: Add a subtle marker for the user's location */}
+                    return (
+                        <Marker
+                            key={listing.id}
+                            position={[finalLat, finalLng]}
+                            icon={getIcon(listing.category, listing.ev_charging_available || false)}
+                            eventHandlers={{
+                                click: () => {
+                                    setSelectedListing(listing);
+                                },
+                            }}
+                        />
+                    );
+                })}
+
                 {userLocation && (
                     <Marker
                         position={userLocation}
@@ -162,62 +247,100 @@ export default function MapInner({ listingType }: { listingType: "space" | "tool
 
             {/* Bottom Sheet */}
             <div
-                className={`absolute bottom-0 left-0 right-0 z-[500] bg-white rounded-t-3xl shadow-[0_-4px_25px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-in-out ${selectedListing ? "translate-y-0" : "translate-y-full"
-                    }`}
+                className={`absolute bottom-0 left-0 right-0 z-[500] bg-white rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)] transition-transform duration-300 ease-out ${
+                    selectedListing ? "translate-y-0" : "translate-y-full"
+                }`}
             >
                 {selectedListing && (
-                    <div className="p-5 pb-[calc(5rem+env(safe-area-inset-bottom))] relative">
-                        {/* Close button pill / drag handle simulated */}
-                        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4" />
-
-                        <button
+                    <div className="p-5 pb-[calc(2rem+env(safe-area-inset-bottom))] flex flex-col">
+                        {/* Drag Handle */}
+                        <div
+                            className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-5 cursor-pointer"
                             onClick={() => setSelectedListing(null)}
-                            className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full active:scale-95"
-                        >
-                            <X className="w-5 h-5 text-gray-500" />
-                        </button>
+                        />
 
+                        {/* Top Section: Image & Basic Info */}
                         <div className="flex gap-4">
-                            <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={selectedListing.image}
-                                    alt={selectedListing.title}
-                                    className="object-cover w-full h-full"
-                                />
+                            <div className="relative w-28 h-28 rounded-2xl overflow-hidden shrink-0 bg-gray-100">
+                                {selectedListing.image_url && (
+                                    <Image
+                                        src={selectedListing.image_url}
+                                        alt={selectedListing.title}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                )}
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-gray-900 text-lg leading-tight truncate">
+                            <div className="flex-1 flex flex-col min-w-0 py-1">
+                                <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2">
                                     {selectedListing.title}
                                 </h3>
-
-                                {selectedListing.evCharging && (
-                                    <div className="inline-flex items-center mt-1.5 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-xs font-medium border border-blue-100">
-                                        <Zap className="w-3 h-3 mr-1" fill="currentColor" />
-                                        EV Charging Available
-                                    </div>
+                                
+                                {selectedListing.address_text && (
+                                    <p className="text-gray-500 text-sm mt-1 truncate">
+                                        {selectedListing.address_text}
+                                    </p>
                                 )}
 
-                                <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-                                    <span>{selectedListing.ownerName}</span>
-                                    <span className="text-gray-300">•</span>
-                                    <div className="flex items-center text-amber-500">
-                                        <Star className="w-3.5 h-3.5 fill-current mr-1" />
-                                        <span className="font-medium text-gray-700">{selectedListing.trustScore}</span>
+                                {selectedListing.ev_charging_available && (
+                                    <div className="inline-flex items-center mt-2 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-100 w-fit">
+                                        <Zap className="w-3 h-3 mr-1" fill="currentColor" />
+                                        EV Available (+${selectedListing.ev_price_per_hour}/hr)
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between mt-6">
-                            <div>
-                                <span className="text-2xl font-bold text-gray-900">
-                                    £{selectedListing.pricePerHour.toFixed(2)}
-                                </span>
-                                <span className="text-gray-500 text-sm"> / hr</span>
+                        {/* Owner Details */}
+                        <div className="mt-5 p-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold overflow-hidden relative">
+                                    {selectedListing.owner?.avatar_url ? (
+                                        <Image src={selectedListing.owner.avatar_url} alt="Owner" fill className="object-cover" />
+                                    ) : (
+                                        selectedListing.owner?.full_name?.charAt(0) || "U"
+                                    )}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-semibold text-gray-900 text-sm">
+                                        {selectedListing.owner?.full_name || "Unknown Owner"}
+                                    </span>
+                                    <div className="flex items-center text-amber-500 text-xs">
+                                        <Star className="w-3.5 h-3.5 fill-current mr-1" />
+                                        <span className="font-bold">{selectedListing.owner?.trust_score || "5.0"}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <button className="bg-emerald-800 text-white px-6 py-2.5 rounded-xl font-medium shadow-md shadow-emerald-900/20 active:scale-95 transition-transform">
-                                Pre-book
+                            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700 active:scale-95 transition-transform">
+                                Profile
+                            </button>
+                        </div>
+
+                        {/* Pricing & CTA */}
+                        <div className="mt-6 flex items-center justify-between pt-4 border-t border-gray-100">
+                            <div>
+                                <div className="flex items-baseline">
+                                    <span className="text-2xl font-bold text-gray-900">
+                                        ${selectedListing.price_per_hour || 0}
+                                    </span>
+                                    <span className="text-gray-500 text-sm ml-1 font-medium">/ hr</span>
+                                </div>
+                                {selectedListing.ev_charging_available && selectedListing.ev_price_per_hour && (
+                                    <p className="text-xs font-bold text-green-600 mt-0.5 tracking-tight">
+                                        +${selectedListing.ev_price_per_hour}/hr EV Rate
+                                    </p>
+                                )}
+                            </div>
+                            <button
+                                onClick={handlePreBook}
+                                disabled={isPending}
+                                className="bg-gray-900 hover:bg-black text-white px-8 py-3.5 rounded-xl font-bold tracking-tight shadow-md active:scale-95 transition-transform flex items-center justify-center min-w-[140px]"
+                            >
+                                {isPending ? (
+                                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                    "Pre-Book Now"
+                                )}
                             </button>
                         </div>
                     </div>
