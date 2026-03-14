@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import type { NewListingData } from "@/types";
 
 export async function createListing(data: NewListingData) {
@@ -33,6 +34,7 @@ export async function createListing(data: NewListingData) {
     return { error: error.message };
   }
 
+  revalidatePath('/', 'layout');
   redirect(`/listings/${listing.id}`);
 }
 
