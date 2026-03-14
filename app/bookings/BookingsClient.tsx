@@ -18,9 +18,9 @@ type Listing = {
     id: string;
     title: string;
     category: string;
-    price_per_hour: number | null;
+    price_per_day: number | null;
     ev_charging_available: boolean;
-    ev_price_per_hour: number | null;
+    ev_price_per_day: number | null;
     image_url: string | null;
     address_text: string | null;
     owner: Profile;
@@ -134,7 +134,7 @@ export default function BookingsClient({
                                     </div>
                                     <div className="text-right">
                                         <div className="text-sm font-medium text-gray-500">Rate</div>
-                                        <div className="font-bold text-gray-900">${b.listings.price_per_hour}/hr</div>
+                                        <div className="font-bold text-gray-900">${b.listings.price_per_day}/day</div>
                                     </div>
                                 </div>
                                 <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1">{b.listings.title}</h3>
@@ -224,7 +224,7 @@ export default function BookingsClient({
                                         <div className="text-xs font-bold text-orange-500 uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded-sm">
                                             Pre-Booked
                                         </div>
-                                        <div className="font-bold text-gray-900">${b.listings.price_per_hour}/hr</div>
+                                        <div className="font-bold text-gray-900">${b.listings.price_per_day}/day</div>
                                     </div>
                                     <h3 className="font-bold text-gray-900 text-lg leading-tight mt-2">{b.listings.title}</h3>
                                     <p className="text-sm text-gray-500 mt-1 flex items-center">

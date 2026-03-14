@@ -32,7 +32,7 @@ export default function AddListingModal({ onClose }: { onClose: () => void }) {
         owner_id: user.id,
         title,
         category,
-        price_per_hour: parseFloat(price),
+        price_per_day: parseFloat(price),
         latitude: parseFloat(latitude) || 0,
         longitude: parseFloat(longitude) || 0,
       })
@@ -97,7 +97,7 @@ export default function AddListingModal({ onClose }: { onClose: () => void }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Price /hr</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Price / day</label>
               <div className="relative">
                 <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
                 <input 

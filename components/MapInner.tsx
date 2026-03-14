@@ -62,9 +62,9 @@ export type MapListing = {
     title: string;
     description: string | null;
     category: "space" | "tool";
-    price_per_hour: number | null;
+    price_per_day: number | null;
     ev_charging_available: boolean;
-    ev_price_per_hour: number | null;
+    ev_price_per_day: number | null;
     latitude: number;
     longitude: number;
     image_url: string | null;
@@ -298,7 +298,7 @@ export default function MapInner({
                                 {selectedListing.ev_charging_available && (
                                     <div className="inline-flex items-center mt-2 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-100 w-fit">
                                         <Zap className="w-3 h-3 mr-1" fill="currentColor" />
-                                        EV Available (+${selectedListing.ev_price_per_hour}/hr)
+                                        EV Available (+${selectedListing.ev_price_per_day}/day)
                                     </div>
                                 )}
                             </div>
@@ -334,13 +334,13 @@ export default function MapInner({
                             <div>
                                 <div className="flex items-baseline">
                                     <span className="text-2xl font-bold text-gray-900">
-                                        ${selectedListing.price_per_hour || 0}
+                                        ${selectedListing.price_per_day || 0}
                                     </span>
-                                    <span className="text-gray-500 text-sm ml-1 font-medium">/ hr</span>
+                                    <span className="text-gray-500 text-sm ml-1 font-medium">/ day</span>
                                 </div>
-                                {selectedListing.ev_charging_available && selectedListing.ev_price_per_hour && (
+                                {selectedListing.ev_charging_available && selectedListing.ev_price_per_day && (
                                     <p className="text-xs font-bold text-green-600 mt-0.5 tracking-tight">
-                                        +${selectedListing.ev_price_per_hour}/hr EV Rate
+                                        +${selectedListing.ev_price_per_day}/day EV Rate
                                     </p>
                                 )}
                             </div>

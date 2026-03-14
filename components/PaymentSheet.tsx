@@ -16,22 +16,17 @@ export default function PaymentSheet({ booking, isOpen, onClose }: PaymentSheetP
 
   if (!isOpen || !booking) return null;
 
-  // Derive duration manually for the breakdown
-  const start = new Date(String(booking.actual_start_time));
-  const end = new Date(String(booking.actual_end_time));
+  // Derive duration in days for the breakdown
+  const start = new Date(String(booking.start_date));
+  const end = new Date(String(booking.end_date));
   const diffMs = end.getTime() - start.getTime();
-  const rawHours = diffMs / (1000 * 60 * 60);
-  const durationHours = Math.max(1, Math.ceil(rawHours));
+  const rawDays = diffMs / (1000 * 60 * 60 * 24);
+  const durationDays = Math.max(1, Math.ceil(rawDays) + 1); // +1 because both start and end days are inclusive usually
 
   // Destructure joined listing safely
   const listing = (booking.listings as Record<string, unknown>) || {};
-  const hourlyRate = parseFloat(String(listing.price_per_hour || 0));
-  const evRate = parseFloat(String(listing.ev_price_per_hour || 0));
+  const dailyRate = parseFloat(String(listing.price_per_day || 0));
   const totalPrice = parseFloat(String(booking.total_price || 0));
-
-  // If EV charging was used, we assume total = duration * (hourlyRate + evRate).
-  // Thus we can infer if EV was used by seeing if duration * hourlyRate < total
-  const estimatedEvUsed = durationHours * hourlyRate < totalPrice - 0.01; // epsilon for float
 
   const handlePayment = async () => {
     setLoading(true);
@@ -75,21 +70,14 @@ export default function PaymentSheet({ booking, isOpen, onClose }: PaymentSheetP
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-5 mb-6 space-y-4 border border-gray-100 dark:border-gray-700">
             {/* Breakdown */}
             <div className="flex justify-between items-center text-gray-600 dark:text-gray-300">
-              <span>Time parked ({durationHours} hr{durationHours > 1 && 's'})</span>
-              <span>₹{(durationHours * hourlyRate).toFixed(2)}</span>
+              <span>Duration ({durationDays} day{durationDays > 1 && 's'})</span>
+              <span>${(durationDays * dailyRate).toFixed(2)}</span>
             </div>
-
-            {estimatedEvUsed && evRate > 0 && (
-              <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400">
-                <span>EV Charging ({durationHours} hr{durationHours > 1 && 's'})</span>
-                <span>₹{(durationHours * evRate).toFixed(2)}</span>
-              </div>
-            )}
 
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
               <div className="flex justify-between items-center font-bold text-xl text-gray-900 dark:text-white">
                 <span>Total Due</span>
-                <span>₹{totalPrice.toFixed(2)}</span>
+                <span>${totalPrice.toFixed(2)}</span>
               </div>
             </div>
           </div>
