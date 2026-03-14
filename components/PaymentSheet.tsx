@@ -51,17 +51,17 @@ export default function PaymentSheet({ booking, isOpen, onClose }: PaymentSheetP
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 z-40 bg-black/60 transition-opacity backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Sheet */}
-      <div 
+      <div
         className="fixed inset-x-0 bottom-0 z-50 transform transition-transform duration-300 ease-out bg-white dark:bg-gray-900 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] slide-up-sheet"
       >
         <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto my-3" />
-        
+
         <div className="px-6 pb-8 pt-2">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
             Complete Payment
@@ -71,13 +71,13 @@ export default function PaymentSheet({ booking, isOpen, onClose }: PaymentSheetP
             {/* Breakdown */}
             <div className="flex justify-between items-center text-gray-600 dark:text-gray-300">
               <span>Duration ({durationDays} day{durationDays > 1 && 's'})</span>
-              <span>${(durationDays * dailyRate).toFixed(2)}</span>
+              <span>₹{(durationDays * dailyRate).toFixed(2)}</span>
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
               <div className="flex justify-between items-center font-bold text-xl text-gray-900 dark:text-white">
                 <span>Total Due</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>₹{totalPrice.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -107,8 +107,9 @@ export default function PaymentSheet({ booking, isOpen, onClose }: PaymentSheetP
           </div>
         </div>
       </div>
-      
-      <style dangerouslySetInnerHTML={{__html: `
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .slide-up-sheet {
           animation: slideUpSheet 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }

@@ -4,7 +4,8 @@ import { Bell, Search, Car, Wrench, Star, MapPin } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLocation } from "@/components/LocationContext";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 // Haversine formula to calculate distance in km
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -14,21 +15,39 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
 
 export default function Home() {
-  const { latitude, longitude, isLoading } = useLocation();
+  const { latitude, longitude, isLoading: isLocationLoading } = useLocation();
+  const [userName, setUserName] = useState("Neighbour");
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
+        if (data && data.full_name) {
+          const firstName = data.full_name.split(' ')[0];
+          setUserName(firstName);
+        }
+      }
+      setIsLoadingUser(false);
+    }
+    fetchUser();
+  }, []);
 
   const dummyListings = [
     {
       id: 1,
       title: "Electric Pressure Washer",
-      price: "$15/d",
+      price: "₹15/d",
       rating: 4.9,
       reviews: 24,
       image: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?q=80&w=2600&auto=format&fit=crop",
@@ -38,7 +57,7 @@ export default function Home() {
     {
       id: 2,
       title: "Secure EV Parking Space",
-      price: "$45/hr",
+      price: "₹45/hr",
       rating: 4.8,
       reviews: 56,
       image: "https://images.unsplash.com/photo-1506521781263-d8422e8ecf27?q=80&w=2574&auto=format&fit=crop",
@@ -48,7 +67,7 @@ export default function Home() {
     {
       id: 3,
       title: "DeWalt Cordless Drill Set",
-      price: "$20/d",
+      price: "₹20/d",
       rating: 5.0,
       reviews: 12,
       image: "https://images.unsplash.com/photo-1504148455328-c99669103557?q=80&w=2670&auto=format&fit=crop",
@@ -58,7 +77,7 @@ export default function Home() {
     {
       id: 4,
       title: "Commercial Grade Lawn Mower",
-      price: "$35/d",
+      price: "₹35/d",
       rating: 4.7,
       reviews: 31,
       image: "https://images.unsplash.com/photo-1592419044706-39796d40f98c?q=80&w=2600&auto=format&fit=crop",
@@ -68,7 +87,7 @@ export default function Home() {
     {
       id: 5,
       title: "Central London Parking Pad",
-      price: "$12/hr",
+      price: "₹12/hr",
       rating: 4.9,
       reviews: 88,
       image: "https://images.unsplash.com/photo-1590674000103-30c74c83b246?q=80&w=2574&auto=format&fit=crop",
@@ -96,7 +115,7 @@ export default function Home() {
       <header className="px-6 pt-12 pb-4 flex justify-between items-center bg-white sticky top-0 z-20">
         <div>
           <p className="text-gray-500 text-sm font-medium">Saturday, March 14</p>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Good morning, Samir</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Good morning, {isLoadingUser ? "..." : userName}</h1>
         </div>
         <div className="relative p-2.5 bg-gray-50 rounded-2xl border border-gray-100 active:scale-95 transition-transform">
           <Bell className="w-6 h-6 text-gray-700" />
@@ -109,9 +128,9 @@ export default function Home() {
         <div className="px-6 mt-2">
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-700 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search for tools or parking..." 
+            <input
+              type="text"
+              placeholder="Search for tools or parking..."
               className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all shadow-sm"
               readOnly
             />
@@ -121,23 +140,23 @@ export default function Home() {
         {/* Quick Actions */}
         <section className="px-6 mt-8">
           <div className="flex gap-4">
-            <Link 
+            <Link
               href="/explore/spaces"
               className="flex-1 bg-emerald-50 p-6 rounded-[2rem] border border-emerald-100/50 active:scale-95 transition-transform group"
             >
               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform">
                 <Car className="w-6 h-6 text-emerald-800" />
               </div>
-              <h3 className="font-bold text-emerald-900 text-lg tracking-tight">Find<br/>Parking</h3>
+              <h3 className="font-bold text-emerald-900 text-lg tracking-tight">Find<br />Parking</h3>
             </Link>
-            <Link 
+            <Link
               href="/explore/tools"
               className="flex-1 bg-amber-50 p-6 rounded-[2rem] border border-amber-100/50 active:scale-95 transition-transform group"
             >
               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform">
                 <Wrench className="w-6 h-6 text-amber-800" />
               </div>
-              <h3 className="font-bold text-amber-900 text-lg tracking-tight">Borrow<br/>Tools</h3>
+              <h3 className="font-bold text-amber-900 text-lg tracking-tight">Borrow<br />Tools</h3>
             </Link>
           </div>
         </section>
@@ -148,9 +167,9 @@ export default function Home() {
             <h2 className="text-xl font-bold text-gray-900 tracking-tight">Featured Near You</h2>
             <button className="text-emerald-700 font-bold text-sm">See All</button>
           </div>
-          
+
           <div className="flex overflow-x-auto gap-5 px-6 pb-4 scrollbar-hide">
-            {isLoading ? (
+            {isLocationLoading ? (
               // Loading Skeleton
               [1, 2, 3].map((i) => (
                 <div key={i} className="min-w-[280px] bg-gray-50 rounded-[2.5rem] overflow-hidden border border-gray-100 animate-pulse">
@@ -165,10 +184,10 @@ export default function Home() {
               filteredItems.map((item) => (
                 <div key={item.id} className="min-w-[280px] bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-sm active:scale-[0.98] transition-transform">
                   <div className="relative h-48">
-                    <Image 
-                      src={item.image} 
-                      alt={item.title} 
-                      fill 
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
                       className="object-cover"
                     />
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-2xl shadow-sm border border-white/20">

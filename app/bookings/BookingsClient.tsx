@@ -72,15 +72,14 @@ export default function BookingsClient({
         <div className="relative min-h-[100dvh] bg-gray-50 pb-24">
             <div className="pt-6 pb-2 px-4 bg-white shadow-sm sticky top-0 z-10">
                 <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-4">Your Bookings</h1>
-                
+
                 <div className="flex p-1 bg-gray-100 rounded-lg">
                     <button
                         onClick={() => setActiveTab("active")}
-                        className={`flex-1 flex justify-center py-2 text-sm font-bold tracking-tight rounded-md transition-all ${
-                            activeTab === "active"
+                        className={`flex-1 flex justify-center py-2 text-sm font-bold tracking-tight rounded-md transition-all ${activeTab === "active"
                                 ? "bg-white text-gray-900 shadow-sm"
                                 : "text-gray-500 hover:text-gray-700 font-medium"
-                        }`}
+                            }`}
                     >
                         Active
                         {activeBookings.length > 0 && (
@@ -91,11 +90,10 @@ export default function BookingsClient({
                     </button>
                     <button
                         onClick={() => setActiveTab("pending")}
-                        className={`flex-1 flex justify-center py-2 text-sm font-bold tracking-tight rounded-md transition-all ${
-                            activeTab === "pending"
+                        className={`flex-1 flex justify-center py-2 text-sm font-bold tracking-tight rounded-md transition-all ${activeTab === "pending"
                                 ? "bg-white text-gray-900 shadow-sm"
                                 : "text-gray-500 hover:text-gray-700 font-medium"
-                        }`}
+                            }`}
                     >
                         Pending
                         {pendingBookings.length > 0 && (
@@ -106,11 +104,10 @@ export default function BookingsClient({
                     </button>
                     <button
                         onClick={() => setActiveTab("past")}
-                        className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                            activeTab === "past"
+                        className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${activeTab === "past"
                                 ? "bg-white text-gray-900 shadow-sm font-bold"
                                 : "text-gray-500 hover:text-gray-700"
-                        }`}
+                            }`}
                     >
                         Past
                     </button>
@@ -134,14 +131,14 @@ export default function BookingsClient({
                                     </div>
                                     <div className="text-right">
                                         <div className="text-sm font-medium text-gray-500">Rate</div>
-                                        <div className="font-bold text-gray-900">${b.listings.price_per_day}/day</div>
+                                        <div className="font-bold text-gray-900">₹{b.listings.price_per_day}/day</div>
                                     </div>
                                 </div>
                                 <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1">{b.listings.title}</h3>
                                 <p className="text-sm text-gray-500 mb-4 flex items-center">
                                     <MapPin className="w-4 h-4 mr-1 shrink-0" /> {b.listings.address_text || "Address unavailable"}
                                 </p>
-                                
+
                                 <div className="bg-blue-50 rounded-xl p-4 mb-4 flex items-center justify-between border border-blue-100/50">
                                     <div className="flex items-center text-blue-900 font-bold">
                                         <Clock className="w-5 h-5 mr-2 text-blue-600" />
@@ -153,7 +150,7 @@ export default function BookingsClient({
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3 mb-4">
-                                    <button 
+                                    <button
                                         onClick={() => setChatBookingId(b.id)}
                                         className="flex items-center justify-center p-3 rounded-xl border border-gray-200 bg-white shadow-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all text-sm"
                                     >
@@ -161,7 +158,7 @@ export default function BookingsClient({
                                         Chat
                                     </button>
                                     {b.status === "awaiting_payment" ? (
-                                        <button 
+                                        <button
                                             onClick={() => setPaymentBooking(b)}
                                             className="flex items-center justify-center p-3 rounded-xl bg-orange-500 text-white shadow-md shadow-orange-500/20 font-bold active:scale-95 transition-all text-sm"
                                         >
@@ -169,7 +166,7 @@ export default function BookingsClient({
                                             Pay Now
                                         </button>
                                     ) : (
-                                        <button 
+                                        <button
                                             onClick={() => setScannerBookingId(b.id)}
                                             className="flex items-center justify-center p-3 rounded-xl bg-gray-900 text-white shadow-md font-bold active:scale-95 transition-all text-sm"
                                         >
@@ -178,7 +175,7 @@ export default function BookingsClient({
                                         </button>
                                     )}
                                 </div>
-                                
+
                                 <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
                                     <div className="flex items-center space-x-2">
                                         <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden relative border border-gray-100">
@@ -224,7 +221,7 @@ export default function BookingsClient({
                                         <div className="text-xs font-bold text-orange-500 uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded-sm">
                                             Pre-Booked
                                         </div>
-                                        <div className="font-bold text-gray-900">${b.listings.price_per_day}/day</div>
+                                        <div className="font-bold text-gray-900">₹{b.listings.price_per_day}/day</div>
                                     </div>
                                     <h3 className="font-bold text-gray-900 text-lg leading-tight mt-2">{b.listings.title}</h3>
                                     <p className="text-sm text-gray-500 mt-1 flex items-center">
@@ -232,7 +229,7 @@ export default function BookingsClient({
                                     </p>
 
                                     <div className="mt-5 pt-4 border-t border-gray-100">
-                                        <button 
+                                        <button
                                             onClick={() => setScannerBookingId(b.id)}
                                             className="w-full bg-indigo-600 text-white rounded-xl font-bold py-3.5 shadow-md shadow-indigo-600/20 active:scale-95 transition-transform flex items-center justify-center"
                                         >
@@ -262,7 +259,7 @@ export default function BookingsClient({
                                     <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">
                                         Past Session
                                     </div>
-                                    <div className="font-bold text-gray-900">Total: ${b.total_price}</div>
+                                    <div className="font-bold text-gray-900">Total: ₹{b.total_price}</div>
                                 </div>
                                 <h3 className="font-bold text-gray-600">{b.listings.title}</h3>
                                 <div className="text-sm text-gray-400 mt-1 capitalize font-medium">{b.status}</div>
@@ -280,7 +277,7 @@ export default function BookingsClient({
                 onSuccess={handleSuccess}
             />
 
-            <BookingChatModal 
+            <BookingChatModal
                 bookingId={chatBookingId!}
                 currentUserId="prototype-user-id" // or pass from auth context / server component
                 status="active" // pass actual status mapped from booking

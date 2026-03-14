@@ -169,13 +169,12 @@ export default function MapInner({
                             className="bg-transparent border-none outline-none w-full text-sm placeholder:text-gray-400 text-gray-900 font-bold"
                         />
                     </div>
-                    <button 
+                    <button
                         onClick={() => setIsRadiusSheetOpen(true)}
-                        className={`p-3.5 rounded-2xl shadow-lg border pointer-events-auto active:scale-95 transition-all flex items-center justify-center gap-2 ${
-                            selectedRadius 
-                                ? "bg-emerald-600 text-white border-emerald-600" 
+                        className={`p-3.5 rounded-2xl shadow-lg border pointer-events-auto active:scale-95 transition-all flex items-center justify-center gap-2 ${selectedRadius
+                                ? "bg-emerald-600 text-white border-emerald-600"
                                 : "bg-white text-gray-700 border-gray-100"
-                        }`}
+                            }`}
                     >
                         <SlidersHorizontal className="w-5 h-5" />
                         {selectedRadius && <span className="text-xs font-black">{selectedRadius}km</span>}
@@ -190,8 +189,8 @@ export default function MapInner({
                                 key={cat}
                                 onClick={() => setSelectedToolCategory(cat)}
                                 className={`px-5 py-2.5 shrink-0 rounded-xl text-xs font-black transition-all shadow-sm ${selectedToolCategory === cat
-                                        ? "bg-gray-900 text-white"
-                                        : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                                    ? "bg-gray-900 text-white"
+                                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                                     }`}
                             >
                                 {cat}
@@ -298,7 +297,7 @@ export default function MapInner({
                                 {selectedListing.ev_charging_available && (
                                     <div className="inline-flex items-center mt-2 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-100 w-fit">
                                         <Zap className="w-3 h-3 mr-1" fill="currentColor" />
-                                        EV Available (+${selectedListing.ev_price_per_day}/day)
+                                        EV Available (+₹{selectedListing.ev_price_per_day}/day)
                                     </div>
                                 )}
                             </div>
@@ -334,13 +333,13 @@ export default function MapInner({
                             <div>
                                 <div className="flex items-baseline">
                                     <span className="text-2xl font-bold text-gray-900">
-                                        ${selectedListing.price_per_day || 0}
+                                        ₹{selectedListing.price_per_day || 0}
                                     </span>
                                     <span className="text-gray-500 text-sm ml-1 font-medium">/ day</span>
                                 </div>
                                 {selectedListing.ev_charging_available && selectedListing.ev_price_per_day && (
                                     <p className="text-xs font-bold text-green-600 mt-0.5 tracking-tight">
-                                        +${selectedListing.ev_price_per_day}/day EV Rate
+                                        +₹{selectedListing.ev_price_per_day}/day EV Rate
                                     </p>
                                 )}
                             </div>
@@ -360,7 +359,7 @@ export default function MapInner({
                 )}
             </div>
             {/* Radius Selection Sheet */}
-            <RadiusFilterSheet 
+            <RadiusFilterSheet
                 isOpen={isRadiusSheetOpen}
                 onClose={() => setIsRadiusSheetOpen(false)}
                 selectedRadius={selectedRadius}
