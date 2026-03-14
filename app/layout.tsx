@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -29,7 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-gray-900 bg-gray-50 overflow-x-hidden min-h-[100dvh] relative`}
       >
-        <main className="h-full min-h-[100dvh] pb-24">
+        <main className="h-[100dvh] pb-20 overflow-y-auto scrollbar-hide">
           {children}
         </main>
         <MobileBottomNav />
