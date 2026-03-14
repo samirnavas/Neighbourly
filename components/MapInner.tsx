@@ -73,10 +73,10 @@ export type MapListing = {
     };
 };
 
-export default function MapInner({ 
-    listingType, 
-    initialListings 
-}: { 
+export default function MapInner({
+    listingType,
+    initialListings
+}: {
     listingType: "space" | "tool";
     initialListings: MapListing[];
 }) {
@@ -86,7 +86,7 @@ export default function MapInner({
     const [selectedToolCategory, setSelectedToolCategory] = useState("All");
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
-    
+
     const mapRef = useRef<L.Map | null>(null);
 
     const toolCategories = ["All", "Power Tools", "Gardening", "Cleaning", "Automotive"];
@@ -173,11 +173,10 @@ export default function MapInner({
                             <button
                                 key={cat}
                                 onClick={() => setSelectedToolCategory(cat)}
-                                className={`px-4 py-2 shrink-0 rounded-full text-sm font-semibold transition-colors shadow-sm ${
-                                    selectedToolCategory === cat
+                                className={`px-4 py-2 shrink-0 rounded-full text-sm font-semibold transition-colors shadow-sm ${selectedToolCategory === cat
                                         ? "bg-gray-900 text-white"
                                         : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
-                                }`}
+                                    }`}
                             >
                                 {cat}
                             </button>
@@ -194,62 +193,63 @@ export default function MapInner({
                 <LocateFixed className="w-6 h-6" />
             </button>
 
-            {/* The Map */}
-            <MapContainer
-                center={initialCenter}
-                zoom={14}
-                zoomControl={false}
-                style={{ width: "100%", height: "100%" }}
-                ref={mapRef}
-            >
-                <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                />
-                <MapController center={userLocation} />
-                <MapEvents />
-
-                {filteredListings.map((listing) => {
-                    const lat = listing.latitude || 0;
-                    const lng = listing.longitude || 0;
-                    // Provide a valid coordinate fallback so pins render if missing coords temporarily
-                    // The user's mock values or default fallback coordinates in add listing are 0,0 which is the Atlantic Ocean.
-                    // For UI purposes, if 0,0 we shift it slightly from the default center. In prod, real API provides real lat/lng.
-                    const finalLat = lat === 0 ? defaultCenter[0] + (Math.random() - 0.5) * 0.05 : lat;
-                    const finalLng = lng === 0 ? defaultCenter[1] + (Math.random() - 0.5) * 0.05 : lng;
-
-                    return (
-                        <Marker
-                            key={listing.id}
-                            position={[finalLat, finalLng]}
-                            icon={getIcon(listing.category, listing.ev_charging_available || false)}
-                            eventHandlers={{
-                                click: () => {
-                                    setSelectedListing(listing);
-                                },
-                            }}
-                        />
-                    );
-                })}
-
-                {userLocation && (
-                    <Marker
-                        position={userLocation}
-                        icon={L.divIcon({
-                            html: '<div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-[0_0_0_2px_rgba(37,99,235,0.3)]"></div>',
-                            className: "bg-transparent",
-                            iconSize: [16, 16],
-                            iconAnchor: [8, 8],
-                        })}
+            {/* The Map — wrapped in z-0 stacking context to keep Leaflet panes below overlays */}
+            <div className="absolute inset-0 z-0">
+                <MapContainer
+                    center={initialCenter}
+                    zoom={14}
+                    zoomControl={false}
+                    style={{ width: "100%", height: "100%" }}
+                    ref={mapRef}
+                >
+                    <TileLayer
+                        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                     />
-                )}
-            </MapContainer>
+                    <MapController center={userLocation} />
+                    <MapEvents />
+
+                    {filteredListings.map((listing) => {
+                        const lat = listing.latitude || 0;
+                        const lng = listing.longitude || 0;
+                        // Provide a valid coordinate fallback so pins render if missing coords temporarily
+                        // The user's mock values or default fallback coordinates in add listing are 0,0 which is the Atlantic Ocean.
+                        // For UI purposes, if 0,0 we shift it slightly from the default center. In prod, real API provides real lat/lng.
+                        const finalLat = lat === 0 ? defaultCenter[0] + (Math.random() - 0.5) * 0.05 : lat;
+                        const finalLng = lng === 0 ? defaultCenter[1] + (Math.random() - 0.5) * 0.05 : lng;
+
+                        return (
+                            <Marker
+                                key={listing.id}
+                                position={[finalLat, finalLng]}
+                                icon={getIcon(listing.category, listing.ev_charging_available || false)}
+                                eventHandlers={{
+                                    click: () => {
+                                        setSelectedListing(listing);
+                                    },
+                                }}
+                            />
+                        );
+                    })}
+
+                    {userLocation && (
+                        <Marker
+                            position={userLocation}
+                            icon={L.divIcon({
+                                html: '<div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-[0_0_0_2px_rgba(37,99,235,0.3)]"></div>',
+                                className: "bg-transparent",
+                                iconSize: [16, 16],
+                                iconAnchor: [8, 8],
+                            })}
+                        />
+                    )}
+                </MapContainer>
+            </div>
 
             {/* Bottom Sheet */}
             <div
-                className={`absolute bottom-0 left-0 right-0 z-[500] bg-white rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)] transition-transform duration-300 ease-out ${
-                    selectedListing ? "translate-y-0" : "translate-y-full"
-                }`}
+                className={`absolute bottom-0 left-0 right-0 z-[500] bg-white rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)] transition-transform duration-300 ease-out ${selectedListing ? "translate-y-0" : "translate-y-full"
+                    }`}
             >
                 {selectedListing && (
                     <div className="p-5 pb-[calc(2rem+env(safe-area-inset-bottom))] flex flex-col">
@@ -275,7 +275,7 @@ export default function MapInner({
                                 <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2">
                                     {selectedListing.title}
                                 </h3>
-                                
+
                                 {selectedListing.address_text && (
                                     <p className="text-gray-500 text-sm mt-1 truncate">
                                         {selectedListing.address_text}
