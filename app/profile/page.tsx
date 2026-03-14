@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Image from "next/image";
-import { Star, Package, LogOut } from "lucide-react";
+import { Star, LogOut, Settings } from "lucide-react";
+import ProfileClient from "./ProfileClient";
 
 export const dynamic = "force-dynamic";
 
@@ -14,14 +15,44 @@ export default async function MyProfilePage() {
         redirect("/auth/login");
     }
 
-    // Fetch the user's profile
+    // 1. Fetch user's profile
     const { data: profile } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
 
-    // Fetch user's past bookings to find frequently used
+    // 2. Fetch "My Listings" (Dashboard Logic)
+    const { data: myListings } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false });
+
+    // 3. Fetch "Currently Rented Out" (Dashboard Logic)
+    const { data: currentlyRentedOut } = await supabase
+        .from("bookings")
+        .select(`
+            *,
+            listings!inner(id, title, category, owner_id)
+        `)
+        .eq("listings.owner_id", user.id)
+        .in("status", ["pending", "active", "awaiting_payment"])
+        .order("created_at", { ascending: false });
+
+    // Fetch renter profiles for these bookings
+    const renterIds = [...new Set((currentlyRentedOut ?? []).map((b: any) => b.renter_id).filter(Boolean))];
+    const { data: renterProfiles } = renterIds.length
+        ? await supabase.from("profiles").select("id, full_name, avatar_url, trust_score").in("id", renterIds)
+        : { data: [] };
+
+    const renterMap = Object.fromEntries((renterProfiles ?? []).map((p: any) => [p.id, p]));
+    const rentedOutWithRenter = (currentlyRentedOut ?? []).map((b: any) => ({
+        ...b,
+        renter: renterMap[b.renter_id] ?? null,
+    }));
+
+    // 4. Fetch Frequently Used (Original Profile Logic)
     const { data: bookings } = await supabase
         .from("bookings")
         .select(`
@@ -35,12 +66,10 @@ export default async function MyProfilePage() {
         `)
         .eq("renter_id", user.id);
 
-    // Aggregate frequently used
     const frequencyMap = new Map();
     if (bookings) {
         for (const b of bookings) {
             if (b.listings) {
-                // listings can be array if foreign key isn't strictly single, but by schema it is a single listing object
                 const lis = (Array.isArray(b.listings) ? b.listings[0] : b.listings) as Record<string, unknown>;
                 if (!lis) continue;
                 
@@ -56,18 +85,23 @@ export default async function MyProfilePage() {
 
     const frequentlyUsed = Array.from(frequencyMap.values())
         .sort((a, b) => b.count - a.count)
-        .slice(0, 3);
+        .slice(0, 5);
 
     return (
-        <div className="min-h-[100dvh] bg-gray-50 pb-[80px] overflow-y-auto">
+        <div className="min-h-[100dvh] bg-white pb-[80px] overflow-y-auto">
             {/* Header / Banner */}
-            <div className="bg-white px-4 py-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col items-center border-b border-gray-100 relative">
+            <div className="px-6 pt-16 pb-8 flex flex-col items-center bg-white relative">
                 
-                <button className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
-                    <LogOut className="w-5 h-5" />
-                </button>
+                <div className="absolute top-12 right-6 flex gap-3">
+                    <button className="p-2.5 text-gray-500 bg-gray-50 border border-gray-100 rounded-2xl active:scale-95 transition-transform">
+                        <Settings className="w-5 h-5" />
+                    </button>
+                    <button className="p-2.5 text-red-500 bg-red-50 border border-red-100 rounded-2xl active:scale-95 transition-transform">
+                        <LogOut className="w-5 h-5" />
+                    </button>
+                </div>
 
-                <div className="w-28 h-28 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-4xl font-bold overflow-hidden mb-4 border-[6px] border-white shadow-xl relative">
+                <div className="w-32 h-32 rounded-[2.5rem] bg-emerald-50 flex items-center justify-center text-emerald-700 text-4xl font-bold overflow-hidden mb-6 border-[8px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] relative">
                     {profile?.avatar_url ? (
                         <Image src={profile.avatar_url} alt="Profile" fill className="object-cover" />
                     ) : (
@@ -75,57 +109,33 @@ export default async function MyProfilePage() {
                     )}
                 </div>
 
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{profile?.full_name || "Unknown User"}</h1>
-                <p className="text-gray-500 font-medium text-sm mt-1">{profile?.phone_number || "No phone added"}</p>
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{profile?.full_name || "Unknown Neighbor"}</h1>
+                <p className="text-gray-500 font-bold text-sm mt-1.5 uppercase tracking-widest px-4 py-1 bg-gray-50 rounded-lg">Verified Resident</p>
                 
-                <div className="bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 px-5 py-2.5 rounded-full font-bold flex items-center mt-5 shadow-sm border border-amber-200/50">
-                    <Star className="w-5 h-5 mr-1.5 fill-amber-500 text-amber-500" />
-                    {Number(profile?.trust_score || 5.0).toFixed(1)} <span className="text-amber-600/70 ml-1.5 font-medium text-sm">Trust Score</span>
+                <div className="flex gap-4 mt-8 w-full px-4">
+                    <div className="flex-1 bg-amber-50 rounded-3xl p-5 border border-amber-100/50 flex flex-col items-center shadow-sm">
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                            <span className="text-xl font-black text-amber-900 leading-none">
+                                {Number(profile?.trust_score || 5.0).toFixed(1)}
+                            </span>
+                        </div>
+                        <span className="text-[10px] font-bold text-amber-800 uppercase tracking-widest">Trust Score</span>
+                    </div>
+                    <div className="flex-1 bg-emerald-50 rounded-3xl p-5 border border-emerald-100/50 flex flex-col items-center shadow-sm">
+                        <span className="text-xl font-black text-emerald-900 mb-1 leading-none">{myListings?.length || 0}</span>
+                        <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest">Items Listed</span>
+                    </div>
                 </div>
             </div>
 
-            <div className="p-4 mt-2">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 tracking-tight flex items-center">
-                    Frequently Used
-                    <span className="ml-2 bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">{frequentlyUsed.length}</span>
-                </h2>
-                
-                {frequentlyUsed.length === 0 ? (
-                    <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-                        <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Package className="w-8 h-8 opacity-80" />
-                        </div>
-                        <h3 className="text-gray-900 font-bold mb-1">No items yet</h3>
-                        <p className="text-gray-500 font-medium text-sm">Rent spaces or tools to see your favorites here.</p>
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                        {frequentlyUsed.map((item) => (
-                            <div key={item.listing.id} className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex items-center active:scale-[0.98] transition-transform">
-                                <div className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0 relative mr-4">
-                                    {item.listing.image_url ? (
-                                        <Image src={item.listing.image_url} alt={item.listing.title} fill className="object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                            <Package className="w-6 h-6" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex-1 min-w-0 pr-2">
-                                    <h3 className="font-bold text-gray-900 leading-tight truncate">{item.listing.title}</h3>
-                                    <p className="text-xs text-blue-600 font-bold uppercase tracking-wider mt-1">{item.listing.category}</p>
-                                    <p className="text-xs font-semibold text-gray-400 mt-1 flex items-center">
-                                        Rented {item.count} time{item.count > 1 ? 's' : ''}
-                                    </p>
-                                </div>
-                                <button className="ml-auto bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-gray-800 transition-colors">
-                                    Re-book
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+            <main className="mt-4">
+                <ProfileClient 
+                    myListings={myListings || []} 
+                    currentlyRentedOut={rentedOutWithRenter}
+                    frequentlyUsed={frequentlyUsed}
+                />
+            </main>
         </div>
     );
 }

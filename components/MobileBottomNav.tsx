@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Compass, Calendar, User } from "lucide-react";
+import { Home, Compass, Calendar, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -8,8 +8,8 @@ export function MobileBottomNav() {
     const pathname = usePathname();
 
     const navItems = [
-        { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-        { label: "Explore", icon: Compass, href: "/explore/spaces" },
+        { label: "Home", icon: Home, href: "/" },
+        { label: "Explore", icon: Compass, href: "/explore" },
         { label: "Bookings", icon: Calendar, href: "/bookings" },
         { label: "Profile", icon: User, href: "/profile" },
     ];

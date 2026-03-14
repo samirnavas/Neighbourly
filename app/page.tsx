@@ -1,63 +1,143 @@
-﻿import { Bell, Car, Wrench } from "lucide-react";
+import { Bell, Search, Car, Wrench, Star, MapPin } from "lucide-react";
 import Link from "next/link";
-
-const categories = [
-  { icon: Car, label: "Parking", href: "/explore?category=parking" },
-  { icon: Wrench, label: "Tools", href: "/explore?category=tools" },
-];
+import Image from "next/image";
 
 export default function Home() {
+  const featuredItems = [
+    {
+      id: 1,
+      title: "Electric Pressure Washer",
+      price: "$15/d",
+      rating: 4.9,
+      reviews: 24,
+      image: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?q=80&w=2600&auto=format&fit=crop",
+      distance: "0.2 mi"
+    },
+    {
+      id: 2,
+      title: "Secure EV Parking Space",
+      price: "$45/hr",
+      rating: 4.8,
+      reviews: 56,
+      image: "https://images.unsplash.com/photo-1506521781263-d8422e8ecf27?q=80&w=2574&auto=format&fit=crop",
+      distance: "0.5 mi"
+    },
+    {
+      id: 3,
+      title: "DeWalt Cordless Drill Set",
+      price: "$20/d",
+      rating: 5.0,
+      reviews: 12,
+      image: "https://images.unsplash.com/photo-1504148455328-c99669103557?q=80&w=2670&auto=format&fit=crop",
+      distance: "0.8 mi"
+    }
+  ];
+
   return (
-    <div className="flex flex-col min-h-full bg-gray-50">
-      <header className="px-6 pt-12 pb-4 bg-white sticky top-0 z-10 border-b border-gray-100/50 flex justify-between items-center">
+    <div className="flex flex-col min-h-[100dvh] bg-white pb-24">
+      {/* Top Bar */}
+      <header className="px-6 pt-12 pb-4 flex justify-between items-center bg-white sticky top-0 z-20">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Good morning, Samir</h1>
+          <p className="text-gray-500 text-sm font-medium">Saturday, March 14</p>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Good morning, Samir</h1>
         </div>
-        <div className="relative">
-          <div className="p-2 bg-gray-100 rounded-full">
-            <Bell className="w-5 h-5 text-gray-600" />
-          </div>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-700 rounded-full border-2 border-white"></span>
+        <div className="relative p-2.5 bg-gray-50 rounded-2xl border border-gray-100 active:scale-95 transition-transform">
+          <Bell className="w-6 h-6 text-gray-700" />
+          <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-emerald-600 rounded-full border-2 border-white"></span>
         </div>
       </header>
 
-      <section className="mt-4 px-6 pb-2">
-        {categories.map((cat, idx) => (
-          <Link
-            key={idx}
-            href={cat.href}
-            className="w-full h-24 rounded-3xl bg-white shadow-md border border-gray-200 flex items-center gap-4 px-5 mb-3 active:scale-[0.98] transition-transform"
-          >
-            <div className="w-14 h-14 rounded-2xl bg-emerald-800/10 flex items-center justify-center">
-              <cat.icon className="w-7 h-7 text-emerald-800" />
-            </div>
-            <span className="text-base font-semibold text-gray-900 tracking-tight">{cat.label}</span>
-          </Link>
-        ))}
-      </section>
-
-      <div className="px-6 mt-6 mb-2">
-        <h2 className="text-lg font-bold text-gray-900 tracking-tight">Near You</h2>
-      </div>
-
-      <div className="px-6 space-y-6 flex-1 pb-10">
-        {[1, 2, 3].map((item) => (
-          <div key={item} className="flex flex-col gap-3">
-            <div className="relative w-full aspect-[4/3] bg-gray-200 rounded-3xl overflow-hidden">
-              <div className="absolute inset-0 bg-gray-300" />
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full shadow-sm">
-                <span className="text-sm font-bold text-gray-900">$15/d</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold text-gray-900 leading-tight">Private Driveway</h3>
-                <p className="text-sm text-gray-500 mt-0.5">0.2 mi away</p>
-              </div>
-            </div>
+      <main className="flex-1">
+        {/* Search Bar */}
+        <div className="px-6 mt-2">
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-700 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Search for tools or parking..." 
+              className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all shadow-sm"
+              readOnly
+            />
           </div>
-        ))}
-      </div>
+        </div>
+
+        {/* Quick Actions */}
+        <section className="px-6 mt-8">
+          <div className="flex gap-4">
+            <Link 
+              href="/explore/spaces"
+              className="flex-1 bg-emerald-50 p-6 rounded-[2rem] border border-emerald-100/50 active:scale-95 transition-transform group"
+            >
+              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform">
+                <Car className="w-6 h-6 text-emerald-800" />
+              </div>
+              <h3 className="font-bold text-emerald-900 text-lg">Find<br/>Parking</h3>
+            </Link>
+            <Link 
+              href="/explore/tools"
+              className="flex-1 bg-amber-50 p-6 rounded-[2rem] border border-amber-100/50 active:scale-95 transition-transform group"
+            >
+              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform">
+                <Wrench className="w-6 h-6 text-amber-800" />
+              </div>
+              <h3 className="font-bold text-amber-900 text-lg">Borrow<br/>Tools</h3>
+            </Link>
+          </div>
+        </section>
+
+        {/* Featured Section */}
+        <section className="mt-10">
+          <div className="px-6 mb-6 flex justify-between items-center">
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Featured Near You</h2>
+            <button className="text-emerald-700 font-bold text-sm">See All</button>
+          </div>
+          
+          <div className="flex overflow-x-auto gap-5 px-6 pb-4 scrollbar-hide">
+            {featuredItems.map((item) => (
+              <div key={item.id} className="min-w-[280px] bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-sm active:scale-[0.98] transition-transform">
+                <div className="relative h-48">
+                  <Image 
+                    src={item.image} 
+                    alt={item.title} 
+                    fill 
+                    className="object-cover"
+                  />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-2xl shadow-sm border border-white/20">
+                    <span className="text-sm font-bold text-gray-900">{item.price}</span>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="font-bold text-gray-900 leading-tight flex-1 pr-2">{item.title}</h3>
+                    <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
+                      <Star className="w-3 h-3 text-amber-600 fill-amber-600" />
+                      <span className="text-xs font-bold text-amber-700">{item.rating}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-gray-500">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">{item.distance} away • {item.reviews} reviews</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Community Banner */}
+        <section className="px-6 mt-4 pb-12">
+          <div className="bg-gray-900 rounded-[2.5rem] p-8 relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="text-white text-xl font-bold mb-2">Join the community</h3>
+              <p className="text-gray-400 text-sm font-medium mb-6 leading-relaxed">List your idle items and start earning today.</p>
+              <button className="bg-white text-gray-900 px-6 py-3 rounded-2xl font-bold text-sm shadow-xl active:scale-95 transition-transform">
+                List an Item
+              </button>
+            </div>
+            <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl"></div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

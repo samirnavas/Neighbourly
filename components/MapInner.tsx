@@ -4,10 +4,12 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { LocateFixed, Search, Star, Zap } from "lucide-react";
+import { LocateFixed, Search, Star, Zap, SlidersHorizontal, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { preBookListing } from "@/app/actions/bookings";
+import { getDistance } from "@/lib/utils";
+import RadiusFilterSheet from "./RadiusFilterSheet";
 
 // Fix for default Leaflet icon paths in next.js
 const DefaultIcon = L.icon({
@@ -84,6 +86,8 @@ export default function MapInner({
     const [selectedListing, setSelectedListing] = useState<MapListing | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedToolCategory, setSelectedToolCategory] = useState("All");
+    const [selectedRadius, setSelectedRadius] = useState<1 | 5 | 10 | 25 | null>(null);
+    const [isRadiusSheetOpen, setIsRadiusSheetOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
@@ -124,18 +128,29 @@ export default function MapInner({
 
     // Filter listings
     const filteredListings = initialListings.filter((l) => {
-        const matchesSearch = searchTerm === "" ||
+        const matchesSearch = !!(searchTerm === "" ||
             l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (l.address_text && l.address_text.toLowerCase().includes(searchTerm.toLowerCase()));
+            (l.address_text && l.address_text.toLowerCase().includes(searchTerm.toLowerCase())));
 
         let matchesCat = true;
         if (listingType === "tool" && selectedToolCategory !== "All") {
             const term = selectedToolCategory.toLowerCase();
-            matchesCat = l.title.toLowerCase().includes(term) ||
-                (l.description && l.description.toLowerCase().includes(term));
+            matchesCat = !!(l.title.toLowerCase().includes(term) ||
+                (l.description && l.description.toLowerCase().includes(term)));
         }
 
-        return matchesSearch && matchesCat;
+        let matchesRadius = true;
+        if (selectedRadius && userLocation) {
+            const distance = getDistance(
+                userLocation[0],
+                userLocation[1],
+                l.latitude || defaultCenter[0],
+                l.longitude || defaultCenter[1]
+            );
+            matchesRadius = distance <= selectedRadius;
+        }
+
+        return matchesSearch && matchesCat && matchesRadius;
     });
 
     const handlePreBook = () => {
@@ -154,16 +169,29 @@ export default function MapInner({
         <div className="relative w-full h-full">
             {/* Search Bar & Toggles Overlay */}
             <div className="absolute top-4 left-4 right-4 z-[400] space-y-3 pointer-events-none">
-                {/* Search Bar */}
-                <div className="bg-white/95 backdrop-blur-md rounded-full shadow-lg border border-gray-100 px-4 py-3 flex items-center pointer-events-auto">
-                    <Search className="w-5 h-5 text-gray-400 mr-2 shrink-0" />
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder={`Search for ${listingType === "space" ? "a parking space" : "tools"} (title or address)...`}
-                        className="bg-transparent border-none outline-none w-full text-sm placeholder:text-gray-400 text-gray-900 font-medium"
-                    />
+                {/* Search Header */}
+                <div className="flex gap-2">
+                    <div className="flex-1 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 px-4 py-3.5 flex items-center pointer-events-auto">
+                        <Search className="w-5 h-5 text-gray-400 mr-2 shrink-0" />
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder={`Search ${listingType === "space" ? "parking" : "tools"}...`}
+                            className="bg-transparent border-none outline-none w-full text-sm placeholder:text-gray-400 text-gray-900 font-bold"
+                        />
+                    </div>
+                    <button 
+                        onClick={() => setIsRadiusSheetOpen(true)}
+                        className={`p-3.5 rounded-2xl shadow-lg border pointer-events-auto active:scale-95 transition-all flex items-center justify-center gap-2 ${
+                            selectedRadius 
+                                ? "bg-emerald-600 text-white border-emerald-600" 
+                                : "bg-white text-gray-700 border-gray-100"
+                        }`}
+                    >
+                        <SlidersHorizontal className="w-5 h-5" />
+                        {selectedRadius && <span className="text-xs font-black">{selectedRadius}km</span>}
+                    </button>
                 </div>
 
                 {/* Horizontal Tool Categories Toggle Bar */}
@@ -173,7 +201,7 @@ export default function MapInner({
                             <button
                                 key={cat}
                                 onClick={() => setSelectedToolCategory(cat)}
-                                className={`px-4 py-2 shrink-0 rounded-full text-sm font-semibold transition-colors shadow-sm ${selectedToolCategory === cat
+                                className={`px-5 py-2.5 shrink-0 rounded-xl text-xs font-black transition-all shadow-sm ${selectedToolCategory === cat
                                         ? "bg-gray-900 text-white"
                                         : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                                     }`}
@@ -346,6 +374,13 @@ export default function MapInner({
                     </div>
                 )}
             </div>
+            {/* Radius Selection Sheet */}
+            <RadiusFilterSheet 
+                isOpen={isRadiusSheetOpen}
+                onClose={() => setIsRadiusSheetOpen(false)}
+                selectedRadius={selectedRadius}
+                onSelect={setSelectedRadius}
+            />
         </div>
     );
 }
