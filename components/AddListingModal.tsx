@@ -7,6 +7,7 @@ import { X, MapPin, Target, Loader2, Image as ImageIcon, Map as MapIcon } from "
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useLocation } from "@/components/LocationContext";
+import { reverseGeocode } from "@/app/actions/geocode";
 
 const LocationPickerMap = dynamic(() => import("./LocationPickerMap"), { ssr: false });
 
@@ -97,13 +98,8 @@ export default function AddListingModal({ onClose }: { onClose: () => void }) {
       setLongitude(lng.toFixed(6));
 
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-        const data = await res.json();
-        if (data && data.display_name) {
-          setAddressText(data.display_name);
-        } else {
-          setAddressText("Current Location");
-        }
+        const address = await reverseGeocode(lat, lng);
+        setAddressText(address);
       } catch (err) {
         setAddressText("Current Location");
       }

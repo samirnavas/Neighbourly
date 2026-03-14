@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapPin, Loader2, X } from "lucide-react";
+import { reverseGeocode } from "@/app/actions/geocode";
 
 export default function LocationPickerMap({
     initialCenter,
@@ -31,9 +32,7 @@ export default function LocationPickerMap({
     const handleConfirm = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}`);
-            const data = await res.json();
-            const address = data.display_name || "Unknown address";
+            const address = await reverseGeocode(center[0], center[1]);
             onConfirm(center[0], center[1], address);
         } catch (error) {
             console.error("Geocoding failed", error);
