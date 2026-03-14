@@ -30,7 +30,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/explore");
+    router.push("/home");
     router.refresh();
   };
 
