@@ -36,14 +36,19 @@ export async function createListing(data: NewListingData) {
   redirect(`/listings/${listing.id}`);
 }
 
-export async function getActiveListings() {
+export async function getActiveListings(category?: 'space' | 'tool') {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("listings")
-    .select("*, profiles(full_name)")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+    .select("*, owner:profiles!owner_id(full_name, trust_score, avatar_url)")
+    .eq("is_active", true);
+
+  if (category) {
+    query = query.eq("category", category);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error) {
     return { data: null, error: error.message };

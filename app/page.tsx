@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useLocation } from "@/components/LocationContext";
 import { useMemo, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getActiveListings } from "@/app/actions/listings";
 
 // Haversine formula to calculate distance in km
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -26,6 +27,7 @@ export default function Home() {
   const { latitude, longitude, isLoading: isLocationLoading } = useLocation();
   const [userName, setUserName] = useState("Neighbour");
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [listings, setListings] = useState<Record<string, unknown>[]>([]);
   const supabase = createClient();
 
   useEffect(() => {
@@ -41,73 +43,28 @@ export default function Home() {
       setIsLoadingUser(false);
     }
     fetchUser();
-  }, []);
 
-  const dummyListings = [
-    {
-      id: 1,
-      title: "Electric Pressure Washer",
-      price: "₹15/d",
-      rating: 4.9,
-      reviews: 24,
-      image: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?q=80&w=2600&auto=format&fit=crop",
-      lat: 51.5074,
-      lng: -0.1278,
-    },
-    {
-      id: 2,
-      title: "Secure EV Parking Space",
-      price: "₹45/hr",
-      rating: 4.8,
-      reviews: 56,
-      image: "https://images.unsplash.com/photo-1506521781263-d8422e8ecf27?q=80&w=2574&auto=format&fit=crop",
-      lat: 51.5152,
-      lng: -0.1419,
-    },
-    {
-      id: 3,
-      title: "DeWalt Cordless Drill Set",
-      price: "₹20/d",
-      rating: 5.0,
-      reviews: 12,
-      image: "https://images.unsplash.com/photo-1504148455328-c99669103557?q=80&w=2670&auto=format&fit=crop",
-      lat: 51.498,
-      lng: -0.177,
-    },
-    {
-      id: 4,
-      title: "Commercial Grade Lawn Mower",
-      price: "₹35/d",
-      rating: 4.7,
-      reviews: 31,
-      image: "https://images.unsplash.com/photo-1592419044706-39796d40f98c?q=80&w=2600&auto=format&fit=crop",
-      lat: 51.52,
-      lng: -0.1,
-    },
-    {
-      id: 5,
-      title: "Central London Parking Pad",
-      price: "₹12/hr",
-      rating: 4.9,
-      reviews: 88,
-      image: "https://images.unsplash.com/photo-1590674000103-30c74c83b246?q=80&w=2574&auto=format&fit=crop",
-      lat: 51.5033,
-      lng: -0.1195,
+    async function fetchListings() {
+      const { data, error } = await getActiveListings();
+      if (data && !error) {
+        setListings(data);
+      }
     }
-  ];
+    fetchListings();
+  }, [supabase]);
 
   const filteredItems = useMemo(() => {
     if (!latitude || !longitude) return [];
 
-    return dummyListings
-      .map(item => ({
+    return listings
+      .map((item: any) => ({
         ...item,
-        distanceVal: getDistance(latitude, longitude, item.lat, item.lng)
+        distanceVal: getDistance(latitude, longitude, item.latitude || 0, item.longitude || 0)
       }))
-      .filter(item => item.distanceVal <= 10) // Within 10km
-      .sort((a, b) => a.distanceVal - b.distanceVal)
+      .filter((item: any) => item.distanceVal <= 10) // Within 10km
+      .sort((a: any, b: any) => a.distanceVal - b.distanceVal)
       .slice(0, 3);
-  }, [latitude, longitude]);
+  }, [latitude, longitude, listings]);
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-white pb-24">
@@ -184,14 +141,18 @@ export default function Home() {
               filteredItems.map((item) => (
                 <div key={item.id} className="min-w-[280px] bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-sm active:scale-[0.98] transition-transform">
                   <div className="relative h-48">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                    />
+                    {item.image_url ? (
+                      <Image
+                        src={item.image_url}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200"></div>
+                    )}
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-2xl shadow-sm border border-white/20">
-                      <span className="text-sm font-bold text-gray-900">{item.price}</span>
+                      <span className="text-sm font-bold text-gray-900">₹{item.price_per_day || 0}/d</span>
                     </div>
                   </div>
                   <div className="p-5">
@@ -199,12 +160,12 @@ export default function Home() {
                       <h3 className="font-bold text-gray-900 leading-tight flex-1 pr-2 line-clamp-1">{item.title}</h3>
                       <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
                         <Star className="w-3 h-3 text-amber-600 fill-amber-600" />
-                        <span className="text-xs font-bold text-amber-700">{item.rating}</span>
+                        <span className="text-xs font-bold text-amber-700">{Number(item.owner?.trust_score || 5.0).toFixed(1)}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 text-gray-500">
                       <MapPin className="w-3.5 h-3.5" />
-                      <span className="text-xs font-medium">{item.distanceVal.toFixed(1)} km away • {item.reviews} reviews</span>
+                      <span className="text-xs font-medium">{item.distanceVal.toFixed(1)} km away • {item.owner?.full_name?.split(' ')[0] || "Neighbour"}</span>
                     </div>
                   </div>
                 </div>

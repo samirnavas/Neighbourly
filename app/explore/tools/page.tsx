@@ -1,33 +1,26 @@
-import { createClient } from "@/lib/supabase/server";
+"use client";
+
+import { useEffect, useState } from "react";
 import { MobileMap } from "@/components/MobileMap";
+import { getActiveListings } from "@/app/actions/listings";
 
-export const dynamic = "force-dynamic";
+export default function ExploreToolsPage() {
+    const [listings, setListings] = useState<Record<string, unknown>[]>([]);
 
-export default async function ExploreToolsPage() {
-    const supabase = await createClient();
-    
-    const { data: listings } = await supabase
-        .from("listings")
-        .select(`
-            id, 
-            title, 
-            description,
-            category, 
-            price_per_hour, 
-            ev_charging_available, 
-            ev_price_per_hour, 
-            latitude, 
-            longitude, 
-            image_url, 
-            address_text, 
-            owner:profiles!owner_id(full_name, avatar_url, trust_score)
-        `)
-        .eq("category", "tool")
-        .eq("is_active", true);
+    useEffect(() => {
+        async function fetchListings() {
+            const { data, error } = await getActiveListings("tool");
+            if (data && !error) {
+                // listings returned already have 'owner' nested properly
+                setListings(data);
+            }
+        }
+        fetchListings();
+    }, []);
 
     return (
         <div className="relative w-full h-[100dvh]">
-            <MobileMap listingType="tool" initialListings={listings || []} />
+            <MobileMap listingType="tool" initialListings={listings} />
         </div>
     );
 }
