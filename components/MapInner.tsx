@@ -63,7 +63,8 @@ export type MapListing = {
     description: string | null;
     category: "space" | "tool";
     price_per_day: number | null;
-    ev_charging_available: boolean;
+    has_ev_charging: boolean;
+    ev_charging_available?: boolean;
     ev_price_per_day: number | null;
     latitude: number;
     longitude: number;
@@ -234,7 +235,7 @@ export default function MapInner({
                             <Marker
                                 key={listing.id}
                                 position={[finalLat, finalLng]}
-                                icon={getIcon(listing.category, listing.ev_charging_available || false)}
+                                icon={getIcon(listing.category, listing.has_ev_charging || false)}
                                 eventHandlers={{
                                     click: () => {
                                         setSelectedListing(listing);
@@ -294,10 +295,9 @@ export default function MapInner({
                                     </p>
                                 )}
 
-                                {selectedListing.ev_charging_available && (
-                                    <div className="inline-flex items-center mt-2 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-100 w-fit">
-                                        <Zap className="w-3 h-3 mr-1" fill="currentColor" />
-                                        EV Available (+₹{selectedListing.ev_price_per_day}/day)
+                                {selectedListing.has_ev_charging && (
+                                    <div className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full mt-2 w-fit">
+                                        ⚡ EV Charging
                                     </div>
                                 )}
                             </div>
@@ -337,11 +337,6 @@ export default function MapInner({
                                     </span>
                                     <span className="text-gray-500 text-sm ml-1 font-medium">/ day</span>
                                 </div>
-                                {selectedListing.ev_charging_available && selectedListing.ev_price_per_day && (
-                                    <p className="text-xs font-bold text-green-600 mt-0.5 tracking-tight">
-                                        +₹{selectedListing.ev_price_per_day}/day EV Rate
-                                    </p>
-                                )}
                             </div>
                             <button
                                 onClick={handlePreBook}

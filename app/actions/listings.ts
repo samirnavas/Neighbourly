@@ -26,6 +26,7 @@ export async function createListing(data: NewListingData) {
       price_per_day: data.price_per_day,
       latitude: data.latitude,
       longitude: data.longitude,
+      has_ev_charging: data.has_ev_charging,
     })
     .select()
     .single();

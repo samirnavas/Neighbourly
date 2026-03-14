@@ -20,6 +20,7 @@ export interface Listing {
   longitude: number;
   is_active: boolean;
   image_url: string | null;
+  has_ev_charging: boolean;
   created_at: string;
   updated_at: string;
   // Joined fields
@@ -47,6 +48,7 @@ export interface NewListingData {
   price_per_day: number;
   latitude: number;
   longitude: number;
+  has_ev_charging: boolean;
 }
 
 export interface NewBookingData {

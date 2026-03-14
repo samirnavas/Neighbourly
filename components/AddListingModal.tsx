@@ -23,6 +23,7 @@ export default function AddListingModal({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [addressText, setAddressText] = useState("");
   const [showMap, setShowMap] = useState(false);
+  const [hasEvCharging, setHasEvCharging] = useState(false);
   const { latitude: userLat, longitude: userLng } = useLocation();
   const router = useRouter();
   const supabase = createClient();
@@ -76,7 +77,8 @@ export default function AddListingModal({ onClose }: { onClose: () => void }) {
         latitude: parseFloat(latitude) || 0,
         longitude: parseFloat(longitude) || 0,
         image_url: imageUrl || null,
-        address_text: addressText || null
+        address_text: addressText || null,
+        has_ev_charging: category === 'tool' ? false : hasEvCharging
       })
       .select()
       .single();
@@ -136,6 +138,21 @@ export default function AddListingModal({ onClose }: { onClose: () => void }) {
               Tool/Equipment
             </button>
           </div>
+
+          {category === 'space' && (
+            <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-2xl border border-blue-100 mb-4 transition-all animate-in slide-in-from-top-2">
+              <span className="text-sm font-bold text-blue-900 tracking-tight flex items-center gap-2">
+                ⚡ EV Charging Available
+              </span>
+              <button
+                type="button"
+                onClick={() => setHasEvCharging(!hasEvCharging)}
+                className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${hasEvCharging ? 'bg-blue-600' : 'bg-gray-300'}`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full absolute transition-transform shadow-sm ${hasEvCharging ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+          )}
 
           <div className="space-y-4">
             <div className="space-y-1.5">
