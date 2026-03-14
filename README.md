@@ -68,6 +68,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Auth Troubleshooting
+
+- `POST /auth/v1/signup 400` or `429` with `email rate limit exceeded`:
+   - Supabase is throttling confirmation emails.
+   - For local development, you can disable email confirmation in Supabase Dashboard -> Authentication -> Providers -> Email.
+   - Or wait for the rate-limit window to reset before creating another account.
+
+- `signup_disabled` error:
+   - Enable Email provider signup in Supabase Dashboard -> Authentication -> Providers -> Email.
+
 ## Project Structure
 
 ```

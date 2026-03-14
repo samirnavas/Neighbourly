@@ -9,6 +9,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
+function getSignupErrorMessage(error: { message?: string; code?: string; status?: number } | null) {
+  if (!error) return "Could not create account. Please try again.";
+
+  if (error.code === "over_email_send_rate_limit" || error.status === 429) {
+    return "Too many signup attempts right now. Please wait a bit before trying again, or disable email confirmation in Supabase Auth settings for local development.";
+  }
+
+  if (error.code === "signup_disabled") {
+    return "Email signup is disabled for this Supabase project. Enable it in Supabase Dashboard -> Authentication -> Providers -> Email.";
+  }
+
+  if (error.code === "email_address_invalid") {
+    return "Please enter a valid email address.";
+  }
+
+  return error.message ?? "Could not create account. Please try again.";
+}
+
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,7 +58,7 @@ export default function SignupPage() {
     });
 
     if (error) {
-      setError(error.message);
+      setError(getSignupErrorMessage(error));
       setLoading(false);
       return;
     }
