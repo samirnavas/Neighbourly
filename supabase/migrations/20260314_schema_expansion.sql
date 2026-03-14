@@ -71,8 +71,9 @@ CREATE POLICY "reviews_insert_own"
     auth.uid() = reviewer_id
     AND EXISTS (
       SELECT 1 FROM public.bookings b
+      JOIN public.listings l ON b.listing_id = l.id
       WHERE b.id = booking_id
-        AND (b.renter_id = auth.uid() OR b.owner_id = auth.uid())
+        AND (b.renter_id = auth.uid() OR l.owner_id = auth.uid())
     )
   );
 
@@ -114,8 +115,9 @@ CREATE POLICY "messages_select_booking_parties"
   USING (
     EXISTS (
       SELECT 1 FROM public.bookings b
+      JOIN public.listings l ON b.listing_id = l.id
       WHERE b.id = booking_id
-        AND (b.renter_id = auth.uid() OR b.owner_id = auth.uid())
+        AND (b.renter_id = auth.uid() OR l.owner_id = auth.uid())
     )
   );
 
@@ -127,8 +129,9 @@ CREATE POLICY "messages_insert_booking_parties"
     auth.uid() = sender_id
     AND EXISTS (
       SELECT 1 FROM public.bookings b
+      JOIN public.listings l ON b.listing_id = l.id
       WHERE b.id = booking_id
-        AND (b.renter_id = auth.uid() OR b.owner_id = auth.uid())
+        AND (b.renter_id = auth.uid() OR l.owner_id = auth.uid())
     )
   );
 
